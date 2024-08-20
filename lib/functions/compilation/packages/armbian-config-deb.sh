@@ -19,19 +19,19 @@ compile_armbian-config() {
 	mkdir -p "${tmp_dir}/${armbian_config_dir}"
 
 	local ARMBIAN_CONFIG_GIT_SOURCE="${ARMBIAN_FIRMWARE_GIT_SOURCE:-"https://github.com/armbian/config"}"
-	local ARMBIAN_CONFIG_GIT_BRANCH="${ARMBIAN_FIRMWARE_GIT_BRANCH:-"master"}"
+	local ARMBIAN_FIRMWARE_BRANCH="commit:5ea25889b5b479a78f5bb186e4dc699b68f134f0"
 
-	fetch_from_repo "https://github.com/armbian/config" "armbian-config" "branch:master"
+	fetch_from_repo "https://github.com/armbian/config" "armbian-config" "commit:18c96aab47c5317e04910819aa1f17d1e3e04f42"
 	# this is also not getting any updates
 	fetch_from_repo "https://github.com/dylanaraps/neofetch" "neofetch" "tag:7.1.0"
 
 	# Fetch Armbian config from git.
 	declare fetched_revision
-	do_checkout="no" fetch_from_repo "${ARMBIAN_CONFIG_GIT_SOURCE}" "armbian-config-git" "branch:${ARMBIAN_CONFIG_GIT_BRANCH}"
+	do_checkout="no" fetch_from_repo "${ARMBIAN_CONFIG_GIT_SOURCE}" "armbian-config-git" "commit:18c96aab47c5317e04910819aa1f17d1e3e04f42"
 	declare -r armbian_firmware_git_sha1="${fetched_revision}"
 
 	# @TODO: move this to where it is actually used; not everyone needs to pull this in
-	fetch_from_repo "$GITHUB_SOURCE/complexorganizations/wireguard-manager" "wireguard-manager" "branch:main"
+	fetch_from_repo "$GITHUB_SOURCE/complexorganizations/wireguard-manager" "wireguard-manager" "commit:84c1b3cc2118b527979a84b5244550518e634569"
 
 	mkdir -p "${tmp_dir}/${armbian_config_dir}"/{DEBIAN,usr/bin/,usr/sbin/,usr/lib/armbian-config/}
 

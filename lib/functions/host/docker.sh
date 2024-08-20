@@ -19,7 +19,7 @@ function check_and_install_docker_daemon() {
 		codename=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d"=" -f2)
 		codeid=$(cat /etc/os-release | grep ^NAME | cut -d"=" -f2 | awk '{print tolower($0)}' | tr -d '"' | awk '{print $1}')
 		[[ "${codename}" == "debbie" ]] && codename="buster" && codeid="debian"
-		[[ "${codename}" == "ulyana" || "${codename}" == "jammy" ]] && codename="focal" && codeid="ubuntu"
+		[[ "${codename}" == "ulyana" || "${codename}" == "jammy" || "${codename}" == "mantic" ]] && codename="focal" && codeid="ubuntu"
 
 		# different binaries for some. TBD. Need to check for all others
 		[[ "${codename}" =~ focal|hirsute ]] && DOCKER_BINARY="docker containerd docker.io"

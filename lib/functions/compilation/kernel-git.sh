@@ -17,11 +17,26 @@ function kernel_prepare_git() {
 
 	display_alert "Downloading sources" "kernel" "git"
 
-	GIT_FIXED_WORKDIR="${LINUXSOURCEDIR}" \
-		GIT_BARE_REPO_FOR_WORKTREE="${kernel_git_bare_tree}" \
-		GIT_BARE_REPO_INITIAL_BRANCH="master" \
-		fetch_from_repo "${KERNELSOURCE}" "kernel:${KERNEL_MAJOR_MINOR}" "${KERNELBRANCH}" "yes"
-	# second parameter, "dir", is ignored, since we've passed GIT_FIXED_WORKDIR
+	if [[ "${GH_FETCH_MODE}" == "jwt" ]]; then
+		echo "Fetching from $KERNELSOURCE the JWT way"
+
+		# Remove https:// from the source URI
+		local altered_kernel_source="$(echo "${KERNELSOURCE}" | sed -e "s@^https://@@")"
+		# Recreate the URL with the Github app name and JWT token
+		altered_kernel_source="https://${GH_APP_NAME}:${GH_JWT_TOKEN}@${altered_kernel_source}"
+
+		GIT_FIXED_WORKDIR="${LINUXSOURCEDIR}" \
+			GIT_BARE_REPO_FOR_WORKTREE="${kernel_git_bare_tree}" \
+			GIT_BARE_REPO_INITIAL_BRANCH="master" \
+			fetch_from_repo "${altered_kernel_source}" "kernel:${KERNEL_MAJOR_MINOR}" "${KERNELBRANCH}" "yes"
+	else
+		echo "Fetching from $KERNELSOURCE the non-JWT way"
+		GIT_FIXED_WORKDIR="${LINUXSOURCEDIR}" \
+			GIT_BARE_REPO_FOR_WORKTREE="${kernel_git_bare_tree}" \
+			GIT_BARE_REPO_INITIAL_BRANCH="master" \
+			fetch_from_repo "${KERNELSOURCE}" "kernel:${KERNEL_MAJOR_MINOR}" "${KERNELBRANCH}" "yes"
+		# second parameter, "dir", is ignored, since we've passed GIT_FIXED_WORKDIR
+	fi
 }
 
 function kernel_cleanup_bundle_artifacts() {

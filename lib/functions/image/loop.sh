@@ -19,18 +19,23 @@ function check_loop_device() {
 
 function check_loop_device_internal() {
 	local device="${1}"
-	display_alert "Checking look device" "${device}" "debug"
+	display_alert "Checking loop device" "${device}" "info"
 	if [[ ! -b "${device}" ]]; then
-		if [[ $CONTAINER_COMPAT == yes && -b "/tmp/${device}" ]]; then
-			display_alert "Creating device node" "${device}"
-			run_host_command_logged mknod -m0660 "${device}" b "0x$(stat -c '%t' "/tmp/${device}")" "0x$(stat -c '%T' "/tmp/${device}")"
+		display_alert "Not a block device" "${device}" "info"
+		if [[ $CONTAINER_COMPAT == yes ]]; then
+			just_loop_device="$(echo "${device}" | cut -c 6-)"
+			MAJ="$(lsblk | grep "${just_loop_device}" | awk '{print $2}' | cut -d ":" -f1)"
+			MIN="$(lsblk | grep "${just_loop_device}" | awk '{print $2}' | cut -d ":" -f2)"
+			display_alert "Found MAJ:MIN of ${device}" "${MAJ}:${MIN}" "info"
+			display_alert "Creating device node" "${device}" "info"
+			run_host_command_logged mknod -m0660 "${device}" b "${MAJ}" "${MIN}"
 			if [[ ! -b "${device}" ]]; then # try again after creating node
 				return 1                       # fail, it will be retried, and should exist on next retry.
 			else
 				display_alert "Device node created OK" "${device}" "info"
 			fi
 		else
-			display_alert "Device node does not exist yet" "${device}" "debug"
+			display_alert "Device node does not exist yet" "${device}" "info"
 			run_host_command_logged ls -la "${device}" || true
 			run_host_command_logged lsblk || true
 			run_host_command_logged blkid || true

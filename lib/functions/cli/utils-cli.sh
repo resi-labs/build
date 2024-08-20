@@ -29,14 +29,18 @@ function parse_cmdline_params() {
 			if [[ "${param_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
 				ARMBIAN_PARSED_CMDLINE_PARAMS["${param_name}"]="${param_value}" # For current run.
 				ARMBIAN_CLI_RELAUNCH_PARAMS["${param_name}"]="${param_value}"   # For relaunch.
-				display_alert "Command line: parsed parameter '$param_name' to" "${param_value_desc}" "debug"
+				if [[ "${param_name}" == "GH_TOKEN" || "${param_name}" == "GH_APP_NAME" || "${param_name}" == "GH_JWT_TOKEN" ]]; then
+					display_alert "Command line: parsed parameter '$param_name' to" "***************" "info"
+				else
+					display_alert "Command line: parsed parameter '$param_name' to" "${param_value_desc}" "info"
+				fi
 			else
 				exit_with_error "Invalid cmdline param '${param_name}=${param_value_desc}'"
 			fi
 		elif [[ "x${arg}x" != "xx" ]]; then # not a param, not empty, store it in the non-param array for later usage
 			local non_param_value="${arg}"
 			local non_param_value_desc="${non_param_value:-(empty)}"
-			display_alert "Command line: storing non-param argument" "${non_param_value_desc}" "debug"
+			display_alert "Command line: storing non-param argument" "${non_param_value_desc}" "info"
 			ARMBIAN_NON_PARAM_ARGS+=("${non_param_value}")
 		fi
 	done
@@ -63,19 +67,27 @@ function apply_cmdline_params_to_env() {
 
 		# Compare, log, and apply.
 		if [[ -z "${!param_name+x}" ]] || [[ "${current_env_value}" != "${param_value}" ]]; then
-			display_alert "Applying cmdline param" "'$param_name': '${current_env_value_desc}' --> '${param_value_desc}' ${__my_reason}" "cmdline"
+			if [[ "${param_name}" == "GH_TOKEN" || "${param_name}" == "GH_APP_NAME" || "${param_name}" == "GH_JWT_TOKEN" ]]; then
+				display_alert "Applying cmdline param" "'$param_name': '${current_env_value_desc}' --> '***************' ${__my_reason}" "cmdline"
+			else
+				display_alert "Applying cmdline param" "'$param_name': '${current_env_value_desc}' --> '${param_value_desc}' ${__my_reason}" "cmdline"
+			fi
 			# use `declare -g` to make it global, we're in a function.
 			eval "declare -g $param_name=\"$param_value\""
 		else
-			# rpardini: strategic amount of spacing in log files show the kinda neuroticism that drives me.
-			display_alert "Skip     cmdline param" "'$param_name': already set to '${param_value_desc}' ${__my_reason}" "info"
+			if [[ "${param_name}" == "GH_TOKEN" || "${param_name}" == "GH_APP_NAME" || "${param_name}" == "GH_JWT_TOKEN" ]]; then
+				display_alert "Skip     cmdline param" "'$param_name': already set to '***************' ${__my_reason}" "info"
+			else
+				# rpardini: strategic amount of spacing in log files show the kinda neuroticism that drives me.
+				display_alert "Skip     cmdline param" "'$param_name': already set to '${param_value_desc}' ${__my_reason}" "info"
+			fi
 		fi
 	done
 }
 
 function armbian_prepare_cli_command_to_run() {
 	local command_id="${1}"
-	display_alert "Preparing to run command" "${command_id}" "debug"
+	display_alert "Preparing to run command" "${command_id}" "info"
 	ARMBIAN_COMMAND="${command_id}"
 	ARMBIAN_COMMAND_HANDLER="${ARMBIAN_COMMANDS_TO_HANDLERS_DICT[${command_id}]}"
 	ARMBIAN_COMMAND_VARS="${ARMBIAN_COMMANDS_TO_VARS_DICT[${command_id}]}"
@@ -86,7 +98,7 @@ function armbian_prepare_cli_command_to_run() {
 		# Loop over them, expanding...
 		for var_piece in ${ARMBIAN_COMMAND_VARS}; do
 			local var_decl="declare -g ${var_piece};"
-			display_alert "Command handler: setting variable" "${var_decl}" "debug"
+			display_alert "Command handler: setting variable" "${var_decl}" "info"
 			set_vars_for_command+=" ${var_decl}"
 		done
 	fi
@@ -106,11 +118,11 @@ function armbian_prepare_cli_command_to_run() {
 	if [[ $(type -t "${pre_run_function_name}" || true) == function ]]; then
 		eval "$(
 			cat <<- EOF
-				display_alert "Setting up pre-run function for command" "${ARMBIAN_COMMAND}: ${pre_run_function_name}" "debug"
+				display_alert "Setting up pre-run function for command" "${ARMBIAN_COMMAND}: ${pre_run_function_name}" "info"
 				function armbian_cli_pre_run_command() {
 					# Set the variables defined in ARMBIAN_COMMAND_VARS
 					${set_vars_for_command}
-					display_alert "Calling pre-run function for command" "${ARMBIAN_COMMAND}: ${pre_run_function_name}" "debug"
+					display_alert "Calling pre-run function for command" "${ARMBIAN_COMMAND}: ${pre_run_function_name}" "info"
 					${pre_run_function_name}
 				}
 			EOF
@@ -120,11 +132,11 @@ function armbian_prepare_cli_command_to_run() {
 	if [[ $(type -t "${run_function_name}" || true) == function ]]; then
 		eval "$(
 			cat <<- EOF
-				display_alert "Setting up run function for command" "${ARMBIAN_COMMAND}: ${run_function_name}" "debug"
+				display_alert "Setting up run function for command" "${ARMBIAN_COMMAND}: ${run_function_name}" "info"
 				function armbian_cli_run_command() {
 					# Set the variables defined in ARMBIAN_COMMAND_VARS
 					${set_vars_for_command}
-					display_alert "Calling run function for command" "${ARMBIAN_COMMAND}: ${run_function_name}" "debug"
+					display_alert "Calling run function for command" "${ARMBIAN_COMMAND}: ${run_function_name}" "info"
 					${run_function_name}
 				}
 			EOF
@@ -222,7 +234,7 @@ function produce_relaunch_parameters() {
 }
 
 function cli_standard_relaunch_docker_or_sudo() {
-	display_alert "Gonna relaunch" "EUID: ${EUID} -- PREFER_DOCKER:${PREFER_DOCKER}" "debug"
+	display_alert "Gonna relaunch" "EUID: ${EUID} -- PREFER_DOCKER:${PREFER_DOCKER}" "info"
 	if [[ "${EUID}" == "0" ]]; then # we're already root. Either running as real root, or already sudo'ed.
 		if [[ "${ARMBIAN_RELAUNCHED}" != "yes" && "${ALLOW_ROOT}" != "yes" ]]; then
 			display_alert "PROBLEM: don't run ./compile.sh as root or with sudo" "PROBLEM: don't run ./compile.sh as root or with sudo" "err"
@@ -230,7 +242,7 @@ function cli_standard_relaunch_docker_or_sudo() {
 				exit_if_countdown_not_aborted 10 "directly called as root"
 			fi
 		fi
-		display_alert "Already running as root" "great, running '${ARMBIAN_COMMAND}' normally" "debug"
+		display_alert "Already running as root" "great, running '${ARMBIAN_COMMAND}' normally" "info"
 	else # not root.
 		# add params when relaunched under docker or sudo
 		ARMBIAN_CLI_RELAUNCH_PARAMS+=(["SET_OWNER_TO_UID"]="${EUID}") # Pass the current UID to any further relaunchings

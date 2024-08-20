@@ -30,7 +30,7 @@ driver_rtl8152_rtl8153() {
 	if linux-version compare "${version}" ge 5.4 && linux-version compare "${version}" le 5.12 && [ "$LINUXFAMILY" != mvebu64 ] && [ "$LINUXFAMILY" != rk322x ] && [ "$LINUXFAMILY" != odroidxu4 ]; then
 
 		# attach to specifics tag or branch
-		local rtl8152ver="branch:master"
+		local rtl8152ver="commit:5a91843e032c00fd46b2c0b3cb2206685bb79420"
 
 		display_alert "Adding" "Drivers for 2.5Gb RTL8152/RTL8153 USB dongles ${rtl8152ver}" "info"
 		fetch_from_repo "$GITHUB_SOURCE/igorpecovnik/realtek-r8152-linux" "rtl8152" "${rtl8152ver}" "yes"
@@ -46,7 +46,7 @@ driver_rtl8189ES() {
 	if linux-version compare "${version}" ge 3.14; then
 
 		# attach to specifics tag or branch
-		local rtl8189esver="branch:master"
+		local rtl8189esver="commit:05996691a5f3a61968a83f8b368454fd2c6885ca"
 
 		display_alert "Adding" "Wireless drivers for Realtek 8189ES chipsets ${rtl8189esver}" "info"
 
@@ -93,7 +93,7 @@ driver_rtl8189FS() {
 	if linux-version compare "${version}" ge 3.14; then
 
 		# attach to specifics tag or branch
-		local rtl8189fsver="branch:rtl8189fs"
+		local rtl8189fsver="commit:75a566a830037c7d1309c5a9fe411562772a1cf2"
 
 		display_alert "Adding" "Wireless drivers for Realtek 8189FS chipsets ${rtl8189fsver}" "info"
 
@@ -141,7 +141,7 @@ driver_rtl8192EU() {
 	if linux-version compare "${version}" ge 3.14; then
 
 		# attach to specifics tag or branch
-		local rtl8192euver="branch:realtek-4.4.x"
+		local rtl8192euver="commit:f2fc8af7ab58d2123eed1aa4428e713cdfc27976"
 
 		display_alert "Adding" "Wireless drivers for Realtek 8192EU chipsets ${rtl8192euver}" "info"
 
@@ -233,7 +233,7 @@ driver_xradio_xr819() {
 
 		display_alert "Adding" "Wireless drivers for Xradio XR819 chipsets" "info"
 
-		fetch_from_repo "$GITHUB_SOURCE/dbeinder/xradio" "xradio" "branch:karabek_rebase" "yes"
+		fetch_from_repo "$GITHUB_SOURCE/dbeinder/xradio" "xradio" "commit:279868ac96f6db34b65f68c6722830fa0aacb86b" "yes"
 		cd "$kerneldir" || exit
 		rm -rf "$kerneldir/drivers/net/wireless/xradio"
 		mkdir -p "$kerneldir/drivers/net/wireless/xradio/"
@@ -344,7 +344,7 @@ driver_rtl8188EU_rtl8188ETV() {
 		linux-version compare "${version}" lt 5.15; then
 
 		# attach to specifics tag or branch
-		local rtl8188euver="branch:v5.7.6.1"
+		local rtl8188euver="commit:0683c3382f7ad4bb90d72b9c903a90a7bd7b200d"
 
 		display_alert "Adding" "Wireless drivers for Realtek 8188EU 8188EUS and 8188ETV chipsets ${rtl8188euver}" "info"
 
@@ -454,7 +454,7 @@ driver_rtl88x2cs() {
 	if linux-version compare "${version}" ge 5.9 && linux-version compare "${version}" lt 6.1; then
 
 		# attach to specifics tag or branch
-		local rtl88x2csver="branch:tune_for_jethub"
+		local rtl88x2csver="commit:2e4e99ae1502b173a938357dc1087e49475b26ed"
 
 		display_alert "Adding" "Wireless drivers for Realtek 88x2cs chipsets ${rtl88x2csver}" "info"
 
@@ -511,7 +511,7 @@ driver_rtl8723DS() {
 	if linux-version compare "${version}" ge 5.0; then
 
 		# attach to specifics tag or branch
-		local rtl8723dsver="branch:master"
+		local rtl8723dsver="commit:47ce045cd83a6798fdd4c2f109850f617f90f9b2"
 
 		display_alert "Adding" "Wireless drivers for Realtek 8723DS chipsets ${rtl8723dsver}" "info"
 
@@ -553,7 +553,7 @@ driver_rtl8723DU() {
 
 	if linux-version compare "${version}" ge 5.0; then
 
-		local rtl8723duver="branch:master"
+		local rtl8723duver="commit:b9f1060c848ce18af01c0a62a459c3a08ccde20c"
 
 		display_alert "Adding" "Wireless drivers for Realtek 8723DU chipsets ${rtl8723duver}" "info"
 
@@ -598,7 +598,7 @@ driver_rtl8822BS() {
 		# attach to specifics tag or branch
 		display_alert "Adding" "Wireless drivers for Realtek 8822BS chipsets ${rtl8822bsver}" "info"
 
-		local rtl8822bsver="branch:local_rtl8822bs"
+		local rtl8822bsver="commit:ee88babf55ad75b49c3312f997fd289e5ca4016b"
 		fetch_from_repo "$GITHUB_SOURCE/150balbes/wifi" "rtl8822bs" "${rtl8822bsver}" "yes"
 		cd "$kerneldir" || exit
 		rm -rf "$kerneldir/drivers/net/wireless/rtl8822bs"

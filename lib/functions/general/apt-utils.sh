@@ -12,16 +12,27 @@ function apt_find_upstream_package_version_and_download_url() {
 	declare -a package_info_download_urls=()
 	declare first_letter_of_sought_package_name="${sought_package_name:0:1}"
 	declare mirror_with_slash="undetermined/"
+	declare -g UBUNTU_PACKAGES_HOST="packages.ubuntu.com"
+	declare -g DEBIAN_PACKAGES_HOST="packages.debian.org"
+
 
 	case "${DISTRIBUTION}" in
 		Ubuntu) # try both the jammy-updates and jammy repos, use whatever returns first
-			package_info_download_urls+=("https://packages.ubuntu.com/${RELEASE}-updates/${ARCH}/${sought_package_name}/download")
-			package_info_download_urls+=("https://packages.ubuntu.com/${RELEASE}/${ARCH}/${sought_package_name}/download")
+			if [ -n "${CUSTOM_UBUNTU_PACKAGES_MIRROR}" ]; then
+				display_alert "Using custom Ubuntu ${RELEASE} ${ARCH} packages mirror" "${CUSTOM_UBUNTU_PACKAGES_MIRROR}" "info"
+				UBUNTU_PACKAGES_HOST="${CUSTOM_UBUNTU_PACKAGES_MIRROR}"
+			fi
+			package_info_download_urls+=("https://${UBUNTU_PACKAGES_HOST}/${RELEASE}-updates/${ARCH}/${sought_package_name}/download")
+			package_info_download_urls+=("https://${UBUNTU_PACKAGES_HOST}/${RELEASE}/${ARCH}/${sought_package_name}/download")
 			mirror_with_slash="${UBUNTU_MIRROR}"
 			;;
 
 		Debian)
-			package_info_download_urls+=("https://packages.debian.org/${RELEASE}/${ARCH}/${sought_package_name}/download")
+			if [ -n "${CUSTOM_DEBIAN_PACKAGES_MIRROR}" ]; then
+				display_alert "Using custom Debian ${RELEASE} ${ARCH} packages mirror" "${CUSTOM_DEBIAN_PACKAGES_MIRROR}" "info"
+				DEBIAN_PACKAGES_HOST="${CUSTOM_DEBIAN_PACKAGES_MIRROR}"
+			fi
+			package_info_download_urls+=("https://${DEBIAN_PACKAGES_HOST}/${RELEASE}/${ARCH}/${sought_package_name}/download")
 			mirror_with_slash="${DEBIAN_MIRROR}"
 			;;
 
@@ -29,6 +40,11 @@ function apt_find_upstream_package_version_and_download_url() {
 			exit_with_error "Unknown distribution '${DISTRIBUTION}'"
 			;;
 	esac
+
+	for package_index in "${!package_info_download_urls[@]}"; do
+		cur_package_index_url="${package_info_download_urls[$package_index]}"
+		display_alert "Package URL [${package_index}]" "${cur_package_index_url}" "info"
+	done
 
 	# if mirror_with_slash does not end with a slash, add it
 	if [[ "${mirror_with_slash}" != */ ]]; then

@@ -78,7 +78,7 @@ function git_ensure_safe_directory() {
 # <ref_subdir>: "yes" to create subdirectory for tag or branch name
 #
 function fetch_from_repo() {
-	display_alert "fetch_from_repo" "$*" "git"
+	display_alert "fetch_from_repo" "url:$1, dir:$2, ref:$3, ref_subdir:$4" "git"
 	local url=$1
 	local dir=$2
 	local ref=$3

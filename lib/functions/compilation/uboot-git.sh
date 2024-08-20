@@ -31,7 +31,7 @@ function uboot_prepare_bare_repo() {
 }
 
 function uboot_prepare_git() {
-	display_alert "Preparing git for u-boot" "BOOTSOURCE: ${BOOTSOURCE}" "debug"
+	display_alert "Preparing git for u-boot" "BOOTSOURCE: ${BOOTSOURCE}" "info"
 	if [[ -n $BOOTSOURCE ]] && [[ "${BOOTSOURCE}" != "none" ]]; then
 		# Prepare the git bare repo for u-boot.
 		declare uboot_git_bare_tree
@@ -43,11 +43,27 @@ function uboot_prepare_git() {
 		# This var will be set by fetch_from_repo().
 		declare checked_out_revision="undetermined"
 
-		GIT_FIXED_WORKDIR="${BOOTSOURCEDIR}" \
-			GIT_BARE_REPO_FOR_WORKTREE="${uboot_git_bare_tree}" \
-			GIT_BARE_REPO_INITIAL_BRANCH="master" \
-			GIT_SKIP_SUBMODULES="${UBOOT_GIT_SKIP_SUBMODULES}" \
-			fetch_from_repo "$BOOTSOURCE" "$BOOTDIR" "$BOOTBRANCH" "yes" # fetch_from_repo <url> <dir> <ref> <subdir_flag>
+		if [[ "${GH_FETCH_MODE}" == "jwt" ]]; then
+			echo "Fetching from $BOOTSOURCE the JWT way"
+
+			# Remove https:// from the source
+			local altered_uboot_source="$(echo "${BOOTSOURCE}" | sed -e "s@^https://@@")"
+			# Recreate the URL with the Github app name and JWT token
+			altered_uboot_source="https://${GH_APP_NAME}:${GH_JWT_TOKEN}@${altered_uboot_source}"
+
+			GIT_FIXED_WORKDIR="${BOOTSOURCEDIR}" \
+				GIT_BARE_REPO_FOR_WORKTREE="${uboot_git_bare_tree}" \
+				GIT_BARE_REPO_INITIAL_BRANCH="master" \
+				GIT_SKIP_SUBMODULES="${UBOOT_GIT_SKIP_SUBMODULES}" \
+				fetch_from_repo "$altered_uboot_source" "$BOOTDIR" "$BOOTBRANCH" "yes" # fetch_from_repo <url> <dir> <ref> <subdir_flag>
+		else
+			echo "Fetching from $BOOTSOURCE the non-JWT way"
+			GIT_FIXED_WORKDIR="${BOOTSOURCEDIR}" \
+				GIT_BARE_REPO_FOR_WORKTREE="${uboot_git_bare_tree}" \
+				GIT_BARE_REPO_INITIAL_BRANCH="master" \
+				GIT_SKIP_SUBMODULES="${UBOOT_GIT_SKIP_SUBMODULES}" \
+				fetch_from_repo "$BOOTSOURCE" "$BOOTDIR" "$BOOTBRANCH" "yes" # fetch_from_repo <url> <dir> <ref> <subdir_flag>
+		fi
 
 		# Sets the outer scope variable
 		uboot_git_revision="${checked_out_revision}"

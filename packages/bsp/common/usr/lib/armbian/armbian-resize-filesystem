@@ -259,19 +259,20 @@ main()
 	echo "$(date) | ${BOARD_NAME} | ${VERSION} | ${DISTRO_ARCH} | ${CPU_ARCH} | ${KERNELID}"
 
 	# trim any btrfs subvolume identifier given in square brackets (e.g. /dev/mapper/armbian-root[/@])
-	local rootdev=$(findmnt -n -o SOURCE / | sed 's~\[.*\]~~') # i.e. /dev/mmcblk0p1, /dev/sda1 or /dev/mapper/armbian-root
+	# TODO - We may need to let it resize the /var partition here rather than the root partition
+	local vardev=$(findmnt -n -o SOURCE /var | sed 's~\[.*\]~~') # i.e. /dev/mmcblk0p1, /dev/sda1 or /dev/mapper/armbian-root
 
 	# check for crypt
 	local cryptname=""
-	if [[ "$(lsblk -n -o TYPE $rootdev | head -1)" == "crypt" ]]; then
-		local cryptname=$(lsblk -n -o NAME $rootdev | head -1) # i.e. armbian-root
+	if [[ "$(lsblk -n -o TYPE $vardev | head -1)" == "crypt" ]]; then
+		local cryptname=$(lsblk -n -o NAME $vardev | head -1) # i.e. armbian-root
 		local parent_uuid=$(cat /etc/crypttab | awk "{if(\$1 == \"$cryptname\"){print \$2}}" | sed 's/UUID=//')
 		local parentdev=$(blkid -U $parent_uuid) # i.e. /dev/mmcblk0p1 or /dev/sda1
 
 		do_expand_partition "$parentdev"
 
 		# resize LUKS container
-		do_resize_crypt "$rootdev" "$parentdev"
+		do_resize_crypt "$vardev" "$parentdev"
 	else
 		# check if growroot (from cloud-initramfs-growroot package) is installed.
 		# despite it's name, that package does NOT require cloud-init.
@@ -281,11 +282,11 @@ main()
 		if [[ -f /usr/share/initramfs-tools/hooks/growroot ]] || [[ -f /usr/share/initramfs-tools/scripts/local-bottom/growroot ]]; then
 			echo "partition resize skipped: growroot detected."
 		else
-			do_expand_partition "$rootdev"
+			do_expand_partition "$vardev"
 		fi
 	fi
 
-	do_expand_filesystem "$rootdev" "/"
+	do_expand_filesystem "$vardev" "/var"
 
 	# disable itself
 	[[ ! -f /var/run/resize2fs-reboot ]] && systemctl disable armbian-resize-filesystem

@@ -57,8 +57,8 @@ function do_main_configuration() {
 		TZDATA=$(cat /etc/timezone)
 		display_alert "Using host's /etc/timezone for" "TZDATA: ${TZDATA}" "debug"
 	else
-		display_alert "Host has no /etc/timezone" "Using Etc/UTC by default" "debug"
-		TZDATA="Etc/UTC" # If not /etc/timezone at host, default to UTC.
+		display_alert "Host has no /etc/timezone" "Using America/Chicago by default" "debug"
+		TZDATA="America/Chicago" # If not /etc/timezone at host, default to UTC.
 	fi
 
 	USEALLCORES=yes # Use all CPU cores for compiling
@@ -76,7 +76,7 @@ function do_main_configuration() {
 		fi
 	fi
 
-	ROOTFS_CACHE_MAX=200 # max number of rootfs cache, older ones will be cleaned up
+	ROOTFS_CACHE_MAX=2 # max number of rootfs cache, older ones will be cleaned up
 
 	# .deb compression. xz is standard, but is slow, so if avoided by default if not running in CI. one day, zstd.
 	if [[ -z ${DEB_COMPRESS} ]]; then
@@ -145,20 +145,6 @@ function do_main_configuration() {
 		[[ -z $CRYPTROOT_PARAMETERS ]] && CRYPTROOT_PARAMETERS="--pbkdf pbkdf2"
 	fi
 
-	# Since we are having too many options for mirror management,
-	# then here is yet another mirror related option.
-	# Respecting user's override in case a mirror is unreachable.
-	case $REGIONAL_MIRROR in
-		china)
-			[[ -z $USE_MAINLINE_GOOGLE_MIRROR ]] && [[ -z $MAINLINE_MIRROR ]] && MAINLINE_MIRROR=tuna
-			[[ -z $USE_GITHUB_UBOOT_MIRROR ]] && [[ -z $UBOOT_MIRROR ]] && UBOOT_MIRROR=gitee
-			[[ -z $GITHUB_MIRROR ]] && GITHUB_MIRROR=gitclone
-			[[ -z $DOWNLOAD_MIRROR ]] && DOWNLOAD_MIRROR=china
-			;;
-		*) ;;
-
-	esac
-
 	# used by multiple sources - reduce code duplication
 	[[ $USE_MAINLINE_GOOGLE_MIRROR == yes ]] && MAINLINE_MIRROR=google
 
@@ -166,26 +152,8 @@ function do_main_configuration() {
 	declare -g MAINLINE_KERNEL_TORVALDS_BUNDLE_URL="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/clone.bundle" # this is plain torvalds, single branch
 	declare -g MAINLINE_KERNEL_STABLE_BUNDLE_URL="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/clone.bundle"     # this is all stable branches. with tags!
 	declare -g MAINLINE_KERNEL_COLD_BUNDLE_URL="${MAINLINE_KERNEL_COLD_BUNDLE_URL:-${MAINLINE_KERNEL_TORVALDS_BUNDLE_URL}}"          # default to Torvalds; everything else is small enough with this
-
-	case $MAINLINE_MIRROR in
-		google)
-			MAINLINE_KERNEL_SOURCE='https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux-stable'
-			MAINLINE_FIRMWARE_SOURCE='https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware.git'
-			;;
-		tuna)
-			MAINLINE_KERNEL_SOURCE='https://mirrors.tuna.tsinghua.edu.cn/git/linux-stable.git'
-			MAINLINE_FIRMWARE_SOURCE='https://mirrors.tuna.tsinghua.edu.cn/git/linux-firmware.git'
-			;;
-		bfsu)
-			MAINLINE_KERNEL_SOURCE='https://mirrors.bfsu.edu.cn/git/linux-stable.git'
-			MAINLINE_FIRMWARE_SOURCE='https://mirrors.bfsu.edu.cn/git/linux-firmware.git'
-			;;
-		*)
-			MAINLINE_KERNEL_SOURCE='https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git' # "linux-stable" was renamed to "linux"
-			MAINLINE_FIRMWARE_SOURCE='https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git'
-			;;
-	esac
-
+	MAINLINE_KERNEL_SOURCE='https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git' # "linux-stable" was renamed to "linux"
+	MAINLINE_FIRMWARE_SOURCE='https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git'
 	MAINLINE_KERNEL_DIR='linux-mainline'
 
 	[[ $USE_GITHUB_UBOOT_MIRROR == yes ]] && UBOOT_MIRROR=github
@@ -203,30 +171,8 @@ function do_main_configuration() {
 	esac
 
 	MAINLINE_UBOOT_DIR='u-boot'
-
-	case $GITHUB_MIRROR in
-		fastgit)
-			GITHUB_SOURCE='https://hub.fastgit.xyz'
-			;;
-		ghproxy)
-			GITHUB_SOURCE='https://ghproxy.com/https://github.com'
-			;;
-		gitclone)
-			GITHUB_SOURCE='https://gitclone.com/github.com'
-			;;
-		*)
-			GITHUB_SOURCE='https://github.com'
-			;;
-	esac
-
-	case $GHCR_MIRROR in
-		dockerproxy)
-			GHCR_SOURCE='ghcr.dockerproxy.com'
-			;;
-		*)
-			GHCR_SOURCE='ghcr.io'
-			;;
-	esac
+	GITHUB_SOURCE='https://github.com'
+	GHCR_SOURCE='ghcr.io'
 
 	# Let's set default data if not defined in board configuration above
 	[[ -z $OFFSET ]] && OFFSET=4 # offset to 1st partition (we use 4MiB boundaries by default)
@@ -307,22 +253,6 @@ function do_extra_configuration() {
 	[[ "${ARCH}" == "amd64" ]] &&
 		UBUNTU_MIRROR='archive.ubuntu.com/ubuntu/' ||
 		UBUNTU_MIRROR='ports.ubuntu.com/'
-
-	if [[ $DOWNLOAD_MIRROR == "china" ]]; then
-		DEBIAN_MIRROR='mirrors.tuna.tsinghua.edu.cn/debian'
-		DEBIAN_SECURTY='mirrors.tuna.tsinghua.edu.cn/debian-security'
-		[[ "${ARCH}" == "amd64" ]] &&
-			UBUNTU_MIRROR='mirrors.tuna.tsinghua.edu.cn/ubuntu/' ||
-			UBUNTU_MIRROR='mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/'
-	fi
-
-	if [[ $DOWNLOAD_MIRROR == "bfsu" ]]; then
-		DEBIAN_MIRROR='mirrors.bfsu.edu.cn/debian'
-		DEBIAN_SECURTY='mirrors.bfsu.edu.cn/debian-security'
-		[[ "${ARCH}" == "amd64" ]] &&
-			UBUNTU_MIRROR='mirrors.bfsu.edu.cn/ubuntu/' ||
-			UBUNTU_MIRROR='mirrors.bfsu.edu.cn/ubuntu-ports/'
-	fi
 
 	if [[ "${ARCH}" == "amd64" ]]; then
 		UBUNTU_MIRROR='archive.ubuntu.com/ubuntu' # ports are only for non-amd64, of course.

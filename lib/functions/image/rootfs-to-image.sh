@@ -38,7 +38,8 @@ function create_image_from_sdcard_rootfs() {
 	# nilfs2 fs does not have extended attributes support, and have to be ignored on copy
 	if [[ $ROOTFS_TYPE == nilfs2 ]]; then rsync_ea=""; fi
 	if [[ $ROOTFS_TYPE != nfs ]]; then
-		display_alert "Copying files via rsync to" "/ (MOUNT root)"
+		# Copy files to primary root
+		display_alert "Copying files via rsync to" "/ (MOUNT root)" "info"
 		run_host_command_logged rsync -aHWh $rsync_ea \
 			--exclude="/boot" \
 			--exclude="/dev/*" \
@@ -48,9 +49,10 @@ function create_image_from_sdcard_rootfs() {
 			--exclude="/sys/*" \
 			--info=progress0,stats1 $SDCARD/ $MOUNT/
 	else
+		# Create rootfs archive - exclude data, boot, and rootb
 		display_alert "Creating rootfs archive" "rootfs.tgz" "info"
-		tar cp --xattrs --directory=$SDCARD/ --exclude='./boot/*' --exclude='./dev/*' --exclude='./proc/*' --exclude='./run/*' --exclude='./tmp/*' \
-			--exclude='./sys/*' . |
+		tar cp --xattrs --directory=$SDCARD/ --exclude='./boot/*' --exclude='./dev/*' \
+			--exclude='./proc/*' --exclude='./run/*' --exclude='./tmp/*' --exclude='./sys/*' . |
 			pv -p -b -r -s "$(du -sb "$SDCARD"/ | cut -f1)" \
 				-N "$(logging_echo_prefix_for_pv "create_rootfs_archive") rootfs.tgz" |
 			gzip -c > "$DEST/images/${version}-rootfs.tgz"
@@ -78,7 +80,7 @@ function create_image_from_sdcard_rootfs() {
 
 	call_extension_method "pre_update_initramfs" "config_pre_update_initramfs" <<- 'PRE_UPDATE_INITRAMFS'
 		*allow config to hack into the initramfs create process*
-		Called after rsync has synced both `/root` and `/root` on the target, but before calling `update_initramfs`.
+		Called after rsync has synced both `/boot` and `/root` on the target, but before calling `update_initramfs`.
 	PRE_UPDATE_INITRAMFS
 
 	# stage: create final initramfs
@@ -129,10 +131,27 @@ function create_image_from_sdcard_rootfs() {
 	rm -rf --one-file-system "${MOUNT}"
 	# unset MOUNT # don't unset, it's readonly now
 
-	mkdir -p "${DESTIMG}"
-	# @TODO: misterious cwd, who sets it?
-
+	# Output the build image
 	run_host_command_logged mv -v "${SDCARD}.raw" "${DESTIMG}/${version}.img"
+
+	# Clean-up and output the three partition UUID files (rootfs, datafs, bdatafs) - also log them
+	if [ -f "${DEST}/images/rootfs.uuid" ]; then
+		rm -f "${DEST}/images/rootfs.uuid"
+	fi
+	display_alert "rootfs UUID (Mount name: /)" "${ROOTA_PART_UUID}" "info"
+	echo "${ROOTA_PART_UUID}" >> "${DEST}/images/rootfs.uuid"
+
+	if [ -f "${DEST}/images/datafs.uuid" ]; then
+		rm -f "${DEST}/images/datafs.uuid"
+	fi
+	display_alert "datafs UUID (Mount name: /${DATA_MOUNT_NAME})" "${DATA_PART_UUID}" "info"
+	echo "${DATA_PART_UUID}" >> "${DEST}/images/datafs.uuid"
+
+	if [ -f "${DEST}/images/bdatafs.uuid" ]; then
+		rm -f "${DEST}/images/bdatafs.uuid"
+	fi
+	display_alert "bdatafs UUID (Mount name: /${BDATA_MOUNT_NAME})" "${BDATA_PART_UUID}" "info"
+	echo "${BDATA_PART_UUID}" >> "${DEST}/images/bdatafs.uuid"
 
 	# custom post_build_image_modify hook to run before fingerprinting and compression
 	[[ $(type -t post_build_image_modify) == function ]] && display_alert "Custom Hook Detected" "post_build_image_modify" "info" && post_build_image_modify "${DESTIMG}/${version}.img"
@@ -211,7 +230,7 @@ function move_images_to_final_destination() {
 			run_host_command_logged mv "${source_file}" "${destination_dir}"
 		done
 	else
-		display_alert "Moving artefacts using rsync to final destination" "${version}" "info"
+		display_alert "Moving artifacts using rsync to final destination" "${version}" "info"
 		run_host_command_logged rsync -av --no-owner --no-group --remove-source-files "${DESTIMG}/${version}"* "${FINALDEST}"
 		run_host_command_logged rm -rfv --one-file-system "${DESTIMG}"
 	fi

@@ -104,24 +104,31 @@ function compile_uboot_target() {
 		# $BOOTDELAY can be set in board family config, ensure autoboot can be stopped even if set to 0
 		[[ $BOOTDELAY == 0 ]] && echo -e "CONFIG_ZERO_BOOTDELAY_CHECK=y" >> .config
 		[[ -n $BOOTDELAY ]] && sed -i "s/^CONFIG_BOOTDELAY=.*/CONFIG_BOOTDELAY=${BOOTDELAY}/" .config || [[ -f .config ]] && echo "CONFIG_BOOTDELAY=${BOOTDELAY}" >> .config
+		echo "CONFIG_REGEX=y" >> .config
+		echo "CONFIG_CMD_SETEXPR=y" >> .config
+		echo "CONFIG_CMD_EXPORTENV=y" >> .config
 	else
 		display_alert "scripts/config found" "u-boot ${version} $BOOTCONFIG ${target_make}" "debug"
 
 		# $BOOTDELAY can be set in board family config, ensure autoboot can be stopped even if set to 0
 		if [[ $BOOTDELAY == 0 ]]; then
-			display_alert "Adding CONFIG_ZERO_BOOTDELAY_CHECK=y u-boot config" "BOOTDELAY==0 for ${target}" "info"
+			display_alert "Adding CONFIG_ZERO_BOOTDELAY_CHECK=y u-boot config" "BOOTDELAY==0 for ${target}" "debug"
 			run_host_command_logged scripts/config --enable CONFIG_ZERO_BOOTDELAY_CHECK
 		fi
 
 		# If BOOTDELAY is set, either change a preexisting CONFIG_BOOTDELAY or add it
 		if [[ -n $BOOTDELAY ]]; then
-			display_alert "Hacking autoboot delay in u-boot config" "BOOTDELAY=${BOOTDELAY} for ${target}" "info"
+			display_alert "Hacking autoboot delay in u-boot config" "BOOTDELAY=${BOOTDELAY} for ${target}" "debug"
 			run_host_command_logged scripts/config --set-val CONFIG_BOOTDELAY "${BOOTDELAY}"
 		fi
 
 		# Hack, up the log level to 6: "info" (default is 4: "warning")
-		display_alert "Hacking log level in u-boot config" "LOGLEVEL=6 for ${target}" "info"
+		display_alert "Hacking log level in u-boot config" "LOGLEVEL=6 for ${target}" "debug"
 		run_host_command_logged scripts/config --set-val CONFIG_LOGLEVEL 6
+
+		run_host_command_logged scripts/config --set-val CONFIG_REGEX "y"
+		run_host_command_logged scripts/config --set-val CONFIG_CMD_SETEXPR "y"
+		run_host_command_logged scripts/config --set-val CONFIG_CMD_EXPORTENV "y"
 	fi
 
 	if [[ "${UBOOT_DEBUGGING}" == "yes" ]]; then

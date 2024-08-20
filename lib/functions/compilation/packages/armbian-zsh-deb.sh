@@ -18,7 +18,7 @@ compile_armbian-zsh() {
 	mkdir -p "${tmp_dir}/${armbian_zsh_dir}"
 
 	fetch_from_repo "$GITHUB_SOURCE/ohmyzsh/ohmyzsh" "oh-my-zsh" "${ARMBIAN_ZSH_BRANCH}"
-	fetch_from_repo "$GITHUB_SOURCE/mroth/evalcache" "evalcache" "branch:master"
+	fetch_from_repo "$GITHUB_SOURCE/mroth/evalcache" "evalcache" "commit:3153dcd77a2c93aa8fdf5d17cece7edb1aa3e040"
 
 	mkdir -p "${tmp_dir}/${armbian_zsh_dir}"/{DEBIAN,etc/skel/,etc/oh-my-zsh/,/etc/skel/.oh-my-zsh/cache}
 

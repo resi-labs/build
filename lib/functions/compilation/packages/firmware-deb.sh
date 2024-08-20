@@ -19,18 +19,18 @@ function compile_firmware() {
 	mkdir -p "${fw_temp_dir}/${fw_dir}/lib/firmware"
 
 	local ARMBIAN_FIRMWARE_GIT_SOURCE="${ARMBIAN_FIRMWARE_GIT_SOURCE:-"https://github.com/armbian/firmware"}"
-	local ARMBIAN_FIRMWARE_GIT_BRANCH="${ARMBIAN_FIRMWARE_GIT_BRANCH:-"master"}"
+	local ARMBIAN_FIRMWARE_GIT_BRANCH="commit:5ea25889b5b479a78f5bb186e4dc699b68f134f0"
 
 	# Fetch Armbian firmware from git.
 	declare fetched_revision
-	do_checkout="no" fetch_from_repo "${ARMBIAN_FIRMWARE_GIT_SOURCE}" "armbian-firmware-git" "branch:${ARMBIAN_FIRMWARE_GIT_BRANCH}"
+	do_checkout="no" fetch_from_repo "${ARMBIAN_FIRMWARE_GIT_SOURCE}" "armbian-firmware-git" "${ARMBIAN_FIRMWARE_GIT_BRANCH}"
 	declare -r armbian_firmware_git_sha1="${fetched_revision}"
 
 	declare extra_conflicts_comma=""
 	if [[ -n $FULL ]]; then
 		# Fetch kernel firmware from git. This is large, but we don't have two copies of it anymore. So more manageable.
 		declare fetched_revision
-		do_checkout="no" fetch_from_repo "$MAINLINE_FIRMWARE_SOURCE" "linux-firmware-git" "branch:main"
+		do_checkout="no" fetch_from_repo "$MAINLINE_FIRMWARE_SOURCE" "linux-firmware-git" "commit:f3c283e198d3fb69f5183b8dea4fd32b8c3cbe76"
 		declare -r mainline_firmware_git_sha1="${fetched_revision}"
 
 		# use git archive to export the ${mainline_firmware_git_sha1} revision into "${fw_temp_dir}/${fw_dir}/lib/firmware/"

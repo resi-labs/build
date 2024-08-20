@@ -157,7 +157,14 @@ function create_new_rootfs_cache_via_debootstrap() {
 
 	# stage: upgrade base packages from xxx-updates and xxx-backports repository branches
 	display_alert "Upgrading base packages" "Armbian" "info"
+
+	# We'll have to hold the base-files pkg so it wont get upgraded
+	chroot_sdcard apt-mark hold base-files
+
 	do_with_retries 3 chroot_sdcard_apt_get upgrade
+
+	# Then release the hold on base-files so it can be replaced by the version we build
+	chroot_sdcard apt-mark unhold base-files
 
 	# stage: install additional packages
 	display_alert "Installing the main packages for" "Armbian" "info"

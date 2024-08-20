@@ -40,6 +40,32 @@ function cli_entrypoint() {
 	# Re-initialize logging, to take into account the new environment after parsing cmdline params.
 	logging_init
 
+	if ! [[ -z "${GH_FETCH_MODE}" ]]; then
+		echo "Received GitHub fetch mode, validating if it is https or jwt)"
+		if [[ "${GH_FETCH_MODE}" != "https" && "${GH_FETCH_MODE}" != "jwt" ]]; then
+			exit_with_error "Invalid GitHub fetch mode specified; must be https (support for ssh and api - coming soon)"
+		fi
+
+		if [[ "${GH_FETCH_MODE}" == "https" ]]; then
+			# Ensure git config --global -l contains credential.https and credential.helper entries
+			local lc_git_config_results="$(git config --global -l | awk -F'.' '{ print $2, $3, $4 }' | grep -o 'https\|cache')"
+			if [[ "${lc_git_config_results}" == *"cache"* && "${lc_git_config_results}" == *"https"* ]]; then
+				echo "Git HTTPS is properly setup"
+			else
+				exit_with_error "Git HTTPS is not setup properly; please configure the Git credential helper in cache mode"
+			fi
+			# Run sudo check with same command
+			local lc_sudo_git_config_results="$(sudo git config --global -l | awk -F'.' '{ print $2, $3, $4 }' | grep -o 'https\|cache')"
+			if [[ "${lc_git_config_results}" == *"cache"* && "${lc_git_config_results}" == *"https"* ]]; then
+				echo "Git HTTPS is properly setup"
+			else
+				exit_with_error "Git HTTPS is not setup properly for the sudo user; please configure the Git credential helper in cache mode"
+			fi
+		fi
+	else
+		exit_with_error "No GitHub fetch method provided; please provide GH_FETCH_MODE"
+	fi
+
 	declare -a -g ARMBIAN_CONFIG_FILES=()                                            # fully validated, complete paths to config files.
 	declare -g ARMBIAN_COMMAND_HANDLER="" ARMBIAN_COMMAND="" ARMBIAN_COMMAND_VARS="" # only valid command and handler will ever be set here.
 	declare -g ARMBIAN_HAS_UNKNOWN_ARG="no"                                          # if any unknown params, bomb.

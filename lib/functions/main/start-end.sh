@@ -131,6 +131,21 @@ function produce_repeat_args_array() {
 	if [[ -n "${ARMBIAN_HIDE_REPEAT_PARAMS}" ]]; then
 		IFS=' ' read -r -a params_to_hide <<< "${ARMBIAN_HIDE_REPEAT_PARAMS}"
 	fi
+
+	# If the GitHub token, Github app name, and/or GitHub JWT token exists; obfuscate it from the repeat build args output
+	declare -a hide_gh_token=0
+	declare -a hide_gh_app_name=0
+	declare -a hide_gh_jwt_token=0
+	if [[ -n "${GH_TOKEN}" ]]; then
+		hide_gh_token=1
+	fi
+	if [[ -n "${GH_APP_NAME}" ]]; then
+		hide_gh_app_name=1
+	fi
+	if [[ -n "${GH_JWT_TOKEN}" ]]; then
+		hide_gh_jwt_token=1
+	fi
+
 	display_alert "Hiding parameters from repeat build options" "${params_to_hide[*]}" "debug"
 
 	repeat_args+=("${ARMBIAN_NON_PARAM_ARGS[@]}") # Add all non-param arguments to repeat_args. This already includes any config files passed.
@@ -159,6 +174,19 @@ function produce_repeat_args_array() {
 
 	for param_name in "${repeat_params_keys_sorted[@]}"; do # add sorted repeat_params to repeat_args
 		declare repeat_value="${repeat_params[${param_name}]}"
+		if [[ "${hide_gh_token}" == "1" && "${param_name}" == "GH_TOKEN" ]]; then
+			# Obfuscate GitHub token; shows that it was provided
+			repeat_value="***************"
+		fi
+		if [[ "${hide_gh_app_name}" == "1" && "${param_name}" == "GH_APP_NAME" ]]; then
+			# Obfuscate GitHub app name; shows that it was provided
+			repeat_value="***************"
+		fi
+		if [[ "${hide_gh_jwt_token}" == "1" && "${param_name}" == "GH_JWT_TOKEN" ]]; then
+			# Obfuscate GitHub JWT token; shows that it was provided
+			repeat_value="***************"
+		fi
+
 		# does it contain spaces? if so, quote it.
 		if [[ "${repeat_value}" =~ [[:space:]] ]]; then
 			repeat_args+=("${param_name}=${repeat_value@Q}") # quote

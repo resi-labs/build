@@ -152,7 +152,7 @@ function list_devices_rkdeveloptool() {
 function build_rkdeveloptool() {
 	# Clone rkdeveloptool
 	#fetch_from_repo "https://github.com/rockchip-linux/rkdeveloptool" "rkdeveloptool" "branch:master" # pristine rk
-	fetch_from_repo "https://github.com/radxa/rkdeveloptool.git" "rkdeveloptool" "branch:master" # Radxa's fork has fixes
+	fetch_from_repo "https://github.com/radxa/rkdeveloptool.git" "rkdeveloptool" "commit:ac50fcb73a63af566ea728464e376131b9384948" # Radxa's fork has fixes
 
 	# Build rkdeveloptool
 	pushd "${rkdeveloptool_dir}" &> /dev/null || exit_with_error "Fail to cd to rkdeveloptool: ${rkdeveloptool_dir}"

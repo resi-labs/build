@@ -1,0 +1,83 @@
+The following commit points are utilized throughout the build to ensure source repos are stable do not drift over time.
+
+**Armbian Build Version**
+- Armbian version 23.08
+- Release Date
+  - September 12, 2023
+
+**Linux Kernel Version**
+- 5.10.160
+
+**Git Repo Commits and Commit Dates**
+- `mroth/evalcache`
+  - Commit Hash: `3153dcd77a2c93aa8fdf5d17cece7edb1aa3e040`
+  - URL: https://github.com/mroth/evalcache
+  - Date: 09/06/2023
+- `armbian/firmware`
+  - Commit Hash: `5ea25889b5b479a78f5bb186e4dc699b68f134f0`
+  - URL: https://github.com/armbian/firmware
+  - Date: 09/02/2023
+- `armbian/rkbin`
+  - Commit Hash: `be3d2004d019b42cbecb001f5d7dd1e361d41e05`
+  - URL: https://github.com/armbian/rkbin
+  - Date: 06/26/2023
+- `radxa/rkdeveloptool`
+  - Commit Hash: `ac50fcb73a63af566ea728464e376131b9384948`
+  - URL: https://github.com/radxa/rkdeveloptool
+  - Date: 11/17/2022
+- `armbian/config`
+  - Commit Hash: `18c96aab47c5317e04910819aa1f17d1e3e04f42`
+  - URL: https://github.com/armbian/config
+  - Date: 09/12/2023
+- `complexorganizations/wireguard-manager`
+  - Commit Hash: `84c1b3cc2118b527979a84b5244550518e634569`
+  - URL: https://github.com/complexorganizations/wireguard-manager
+  - Date: 12/05/2023
+- `firmware/linux-firmware` (line up with 5.10.160 kernel release on 12/19/2022)
+  - Commit Hash: `f3c283e198d3fb69f5183b8dea4fd32b8c3cbe76`
+  - URL: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+  - Date: 12/13/2022
+- `u-boot/u-boot` (2017.09)
+  - Commit Hash: `c98ac3487e413c71e5d36322ef3324b21c6f60f9`
+  - URL: https://github.com/u-boot/u-boot
+  - Date: 09/01/2017
+- `igorpecovnik/realtek-r8152-linux` (rtl8152)
+  - Commit Hash: `5a91843e032c00fd46b2c0b3cb2206685bb79420`
+  - URL: https://github.com/igorpecovnik/realtek-r8152-linux
+  - Date: 06/29/2021
+- `jwrdegoede/rtl8189ES_linux` (rtl8189es)
+  - Commit Hash: `05996691a5f3a61968a83f8b368454fd2c6885ca`
+  - URL: https://github.com/jwrdegoede/rtl8189ES_linux
+  - Date: 07/08/2023
+- `jwrdegoede/rtl8189ES_linux` (rtl8189fs)
+  - Commit Hash: `75a566a830037c7d1309c5a9fe411562772a1cf2`
+  - URL: https://github.com/jwrdegoede/rtl8189ES_linux
+  - Date: 07/08/2023
+- `Mange/rtl8192eu-linux-driver` (rtl8192eu)
+  - Commit Hash: `f2fc8af7ab58d2123eed1aa4428e713cdfc27976`
+  - URL: https://github.com/Mange/rtl8192eu-linux-driver
+  - Date: 12/13/2023
+- `dbeinder/xradio` (xradio)
+  - Commit Hash: `279868ac96f6db34b65f68c6722830fa0aacb86b`
+  - URL: https://github.com/dbeinder/xradio
+  - Date: 04/21/2020
+- `aircrack-ng/rtl8188eus` (rtl8188eu)
+  - Commit Hash: `0683c3382f7ad4bb90d72b9c903a90a7bd7b200d`
+  - URL: https://github.com/aircrack-ng/rtl8188eus
+  - Date: 12/28/2020
+- `jethome-ru/rtl88x2cs` (rtl88x2cs)
+  - Commit Hash: `2e4e99ae1502b173a938357dc1087e49475b26ed`
+  - URL: https://github.com/jethome-ru/rtl88x2cs
+  - Date: 08/28/2023
+- `lwfinger/rtl8723ds` (rtl8723ds)
+  - Commit Hash: `47ce045cd83a6798fdd4c2f109850f617f90f9b2`
+  - URL: https://github.com/lwfinger/rtl8723ds
+  - Date: 08/01/2023
+- `lwfinger/rtl8723du` (rtl8723du)
+  - Commit Hash: `b9f1060c848ce18af01c0a62a459c3a08ccde20c`
+  - URL: https://github.com/lwfinger/rtl8723du
+  - Date: 07/31/2023
+- `150balbes/wifi` (rtl8822bs)
+  - Commit Hash: `ee88babf55ad75b49c3312f997fd289e5ca4016b`
+  - URL: https://github.com/150balbes/wifi
+  - Date: 04/30/2022
